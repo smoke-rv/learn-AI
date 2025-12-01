@@ -29,8 +29,8 @@ def get_model_response(prompt: str) -> dict:
 
 ## --- Streamlit UI Section ---
 
-st.title("🤖 QA's Prompt-to-Result Service")
-st.caption("Введи промпт, і побачиш магію AI (або QA 😉)")
+st.title("Prompt-to-Result Service")
+st.caption("Введи промпт, і побачиш магію AI")
 
 # Форма для введення промпта
 with st.form(key='prompt_form'):
@@ -42,7 +42,7 @@ if submit_button and user_prompt:
     st.subheader("✅ AI Response:")
     
     # Використовуємо st.spinner для кращого UX (User Experience)
-    with st.spinner('Чекаємо на відповідь від моделі... (Це найскладніший Test Case - очікування!)'):
+    with st.spinner('Чекаємо на відповідь від моделі...'):
         try:
             # Виклик імітованої моделі
             response_data = get_model_response(user_prompt)
@@ -62,7 +62,7 @@ if submit_button and user_prompt:
                 st.image(content, caption=f"Згенеровано моделлю: {metadata.get('source')}")
                 
             else:
-                st.error("Помилка QA: Невідомий тип відповіді від моделі!")
+                st.error("Помилка: Невідомий тип відповіді від моделі!")
                 st.json(response_data) # Показуємо сирий JSON для Debugging
                 
             st.markdown("---")
@@ -71,7 +71,7 @@ if submit_button and user_prompt:
         except ValueError as e:
             # Обробка помилок (Error Handling)
             st.error(f"❌ Model Error: {e}")
-            st.warning("Це те, що ми, QA, любимо найбільше – справжній баг! Треба його задокументувати.")
+            st.warning("Щось пішло не так, мабуть виникла якась помилка.")
 
 elif submit_button:
     st.warning("Не забудьте ввести Prompt! Модель не вміє читати ваші думки (поки що).")
