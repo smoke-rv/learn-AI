@@ -6,8 +6,16 @@ from openai import OpenAI
 # Load environment variables
 load_dotenv()
 
+# Get API key and validate
+api_key = os.getenv("OPENAI_API_KEY")
+
+if not api_key:
+    st.error("❌ API ключ не знайдено!")
+    st.warning("Перевірте файл `.env` та переконайтесь, що він містить рядок: `OPENAI_API_KEY=ваш_ключ`")
+    st.stop()
+
 # Initialize OpenAI client
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = OpenAI(api_key=api_key)
 
 def get_model_response(prompt: str) -> dict:
     """
