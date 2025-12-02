@@ -1,36 +1,41 @@
 import streamlit as st
 import os
 from dotenv import load_dotenv
+from openai import OpenAI
 
 # Load environment variables
 load_dotenv()
 
-# Тут ми імітуємо виклик AI моделі.
-# В реальному житті, тут був би виклик до OpenAI, Gemini, HuggingFace чи іншого API.
+# Initialize OpenAI client
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
 def get_model_response(prompt: str) -> dict:
     """
-    Імітує виклик моделі та повертає структуровану відповідь.
-    Для демонстрації, якщо prompt містить "image" – повертаємо зображення, інакше – текст.
+    Викликає OpenAI API та повертає структуровану відповідь.
     """
-    st.info(f"AI Model called with prompt: '{prompt}'") # QA-логінг у консоль!
-
-    if "image" in prompt.lower():
-        # Імітація відповіді, що містить посилання на зображення (наприклад, від DALL-E)
-        return {
-            "type": "image",
-            "content": "https://upload.wikimedia.org/wikipedia/commons/4/47/PNG_transparency_example.png",
-            "metadata": {"source": "DALL-E-like model"}
-        }
-    elif "error" in prompt.lower():
-        # Імітація помилки від моделі
-        raise ValueError("Model failed to process the request due to internal server error.")
-    else:
-        # Імітація текстової відповіді (наприклад, від GPT)
+    try:
+        # Виклик OpenAI Chat Completions API
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "user", "content": prompt}
+            ]
+        )
+        
+        # Отримуємо відповідь від моделі
+        content = response.choices[0].message.content
+        
         return {
             "type": "text",
-            "content": f"Результат від моделі для запиту: '{prompt}'. Мої вітання, це стандартна текстова відповідь.",
-            "metadata": {"source": "LLM-like model"}
+            "content": content,
+            "metadata": {
+                "model": response.model,
+                "tokens": response.usage.total_tokens
+            }
         }
+    except Exception as e:
+        # Викидаємо помилку для обробки у UI
+        raise ValueError(f"OpenAI API Error: {str(e)}")
 
 ## --- Streamlit UI Section ---
 
@@ -49,7 +54,7 @@ if submit_button and user_prompt:
     # Використовуємо st.spinner для кращого UX (User Experience)
     with st.spinner('Чекаємо на відповідь від моделі...'):
         try:
-            # Виклик імітованої моделі
+            # Виклик OpenAI API
             response_data = get_model_response(user_prompt)
             
             # --- Логіка відображення різних типів контенту ---
@@ -60,11 +65,7 @@ if submit_button and user_prompt:
             
             if response_type == "text":
                 st.success("Отримано текст:")
-                st.markdown(f"**{content}**")
-                
-            elif response_type == "image":
-                st.success("Отримано зображення:")
-                st.image(content, caption=f"Згенеровано моделлю: {metadata.get('source')}")
+                st.markdown(content)
                 
             else:
                 st.error("Помилка: Невідомий тип відповіді від моделі!")
