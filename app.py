@@ -1,4 +1,9 @@
 import streamlit as st
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Тут ми імітуємо виклик AI моделі.
 # В реальному житті, тут був би виклик до OpenAI, Gemini, HuggingFace чи іншого API.
