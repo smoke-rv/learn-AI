@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import html
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -38,6 +39,7 @@ st.markdown("""
         -webkit-text-fill-color: transparent;
         background-clip: text;
         margin-bottom: 0.5rem;
+        padding-top: 1rem;
     }
     
     /* Subtitle */
@@ -56,6 +58,12 @@ st.markdown("""
         color: #e2e8f0 !important;
         font-size: 1rem !important;
         padding: 1rem !important;
+    }
+    
+    /* Placeholder text color fix */
+    .stTextArea textarea::placeholder {
+        color: #64748b !important;
+        opacity: 1 !important;
     }
     
     .stTextArea textarea:focus {
@@ -77,26 +85,16 @@ st.markdown("""
         box-shadow: 0 4px 15px rgba(167, 139, 250, 0.4) !important;
     }
     
+    /* Button hover - keep it bright */
     .stButton button:hover {
-        transform: translateY(-2px);
+        background: linear-gradient(135deg, #b794ff 0%, #70b5ff 100%) !important;
+        transform: translateY(-2px) !important;
         box-shadow: 0 6px 20px rgba(167, 139, 250, 0.6) !important;
-    }
-    
-    /* Response container */
-    .response-container {
-        margin-top: 2rem;
-        padding: 1.5rem;
-        background: #1e293b;
-        border-radius: 12px;
-        border: 1px solid #334155;
-        min-height: 150px;
-        max-height: 500px;
-        overflow-y: auto;
     }
     
     /* Message blocks */
     .message-block {
-        margin-bottom: 1.5rem;
+        margin-bottom: 2rem;
         padding-bottom: 1.5rem;
         border-bottom: 1px solid #334155;
     }
@@ -141,6 +139,7 @@ st.markdown("""
         color: #cbd5e1;
         line-height: 1.6;
         font-size: 1rem;
+        white-space: pre-wrap;
     }
     
     .response-empty {
@@ -150,6 +149,7 @@ st.markdown("""
         justify-content: center;
         color: #64748b;
         font-style: italic;
+        margin-top: 2rem;
     }
     
     /* Metadata badges */
@@ -246,25 +246,23 @@ elif submit_button:
     st.warning("⚠️ Don't forget to enter your prompt!")
 
 # Display conversation history
-st.markdown('<div class="response-container">', unsafe_allow_html=True)
-
 if st.session_state.conversation_history:
-    # Display all messages
     for idx, message in enumerate(st.session_state.conversation_history):
-        user_prompt = message["user_prompt"]
+        user_prompt_text = message["user_prompt"]
         ai_response = message["ai_response"]
-        content = ai_response.get("content")
+        content_text = ai_response.get("content", "")
         metadata = ai_response.get("metadata", {})
         
-        st.markdown(f'''
+        # Build HTML for this message
+        message_html = f'''
         <div class="message-block">
             <div class="user-message">
                 <div class="user-label">You:</div>
-                <div class="user-text">{user_prompt}</div>
+                <div class="user-text">{html.escape(user_prompt_text)}</div>
             </div>
             <div class="ai-message">
                 <div class="ai-label">AI Response:</div>
-                <div class="ai-text">{content}</div>
+                <div class="ai-text">{html.escape(content_text)}</div>
                 <div class="metadata-container">
                     <div class="metadata-badge">
                         <span class="badge-icon">🤖</span>
@@ -277,9 +275,8 @@ if st.session_state.conversation_history:
                 </div>
             </div>
         </div>
-        ''', unsafe_allow_html=True)
+        '''
+        st.markdown(message_html, unsafe_allow_html=True)
 else:
     # Empty state
     st.markdown('<div class="response-empty">Your conversation will appear here...</div>', unsafe_allow_html=True)
-
-st.markdown('</div>', unsafe_allow_html=True)
